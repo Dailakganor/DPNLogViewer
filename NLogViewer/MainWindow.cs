@@ -8,13 +8,13 @@ using System.Windows.Forms;
 
 namespace NLogViewer
 {
-    public partial class Form1 : Form
+    public partial class MainWindow : Form
     {
         private OpenFileDialog openFileDialog1;
         private List<string[]> fullList;
         private List<string> guids;
 
-        public Form1()
+        public MainWindow()
         {
             InitializeComponent();
             SetupDataGridView();
@@ -83,14 +83,14 @@ namespace NLogViewer
             {
                 dataGridView1.Rows.Clear();
 
-                WriteDataFromFile();
+                ReadDataFromFile();
 
                 corelationIds.DataSource = guids;
                 Format();
             }
         }
 
-        private void WriteDataFromFile()
+        private void ReadDataFromFile()
         {
             using (Stream fileStream = File.Open(openFileDialog1.FileName, FileMode.Open))
             using (StreamReader reader = new StreamReader(fileStream))
@@ -99,48 +99,16 @@ namespace NLogViewer
                 do
                 {
                     line = reader.ReadLine();
+
                     if (line == null)
-                    {
                         break;
-                    }
 
                     string[] parts = line.Split(new char[] { '|' }, StringSplitOptions.None);
-                    string[] row;
-                    if (parts.Length == 1)
-                    {
-                        row = new string[] { parts[0], string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty };
-                    }
-                    else if (parts.Length == 2)
-                    {
-                        row = new string[] { parts[0], parts[1], string.Empty, string.Empty, string.Empty, string.Empty, string.Empty };
-                    }
-                    else if (parts.Length == 3)
-                    {
-                        row = new string[] { parts[0], parts[1], parts[2], string.Empty, string.Empty, string.Empty, string.Empty };
-                    }
-                    else if (parts.Length == 4)
-                    {
-                        row = new string[] { parts[0], parts[1], parts[2], parts[3], string.Empty, string.Empty, string.Empty };
-                    }
-                    else if (parts.Length == 5)
-                    {
-                        row = new string[] { parts[0], parts[1], parts[2], parts[3], parts[4], string.Empty, string.Empty };
-                    }
-                    else if (parts.Length == 6)
-                    {
-                        row = new string[] { parts[0], parts[1], parts[2], parts[3], parts[4], parts[5], string.Empty };
-                    }
-                    else if (parts.Length == 7)
-                    {
-                        row = new string[] { parts[0], parts[1], parts[2], parts[3], parts[4], parts[5], parts[6] };
-                    }
-                    else
-                    {
-                        row = new string[] { string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty };
-                    }
+                    var row = CreateRowItem(parts);
 
                     fullList.Add(row);
                     dataGridView1.Rows.Add(row);
+
                     if (parts.Length > 1 && Guid.TryParse(parts[1], out Guid newGuid))
                     {
                         if (!guids.Contains(newGuid.ToString()))
@@ -254,39 +222,7 @@ namespace NLogViewer
 
                     if (rowDate > lastRowDate)
                     {
-                        string[] row;
-                        if (parts.Length == 1)
-                        {
-                            row = new string[] { parts[0], string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty };
-                        }
-                        else if (parts.Length == 2)
-                        {
-                            row = new string[] { parts[0], parts[1], string.Empty, string.Empty, string.Empty, string.Empty, string.Empty };
-                        }
-                        else if (parts.Length == 3)
-                        {
-                            row = new string[] { parts[0], parts[1], parts[2], string.Empty, string.Empty, string.Empty, string.Empty };
-                        }
-                        else if (parts.Length == 4)
-                        {
-                            row = new string[] { parts[0], parts[1], parts[2], parts[3], string.Empty, string.Empty, string.Empty };
-                        }
-                        else if (parts.Length == 5)
-                        {
-                            row = new string[] { parts[0], parts[1], parts[2], parts[3], parts[4], string.Empty, string.Empty };
-                        }
-                        else if (parts.Length == 6)
-                        {
-                            row = new string[] { parts[0], parts[1], parts[2], parts[3], parts[4], parts[5], string.Empty };
-                        }
-                        else if (parts.Length == 7)
-                        {
-                            row = new string[] { parts[0], parts[1], parts[2], parts[3], parts[4], parts[5], parts[6] };
-                        }
-                        else
-                        {
-                            row = new string[] { string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty };
-                        }
+                        var row = CreateRowItem(parts);
 
                         fullList.Add(row);
                         dataGridView1.Invoke(new Action(() => dataGridView1.Rows.Add(row)));
@@ -302,6 +238,45 @@ namespace NLogViewer
 
             Format();
             corelationIds.DataSource = guids;
+        }
+
+        private static string[] CreateRowItem(string[] parts)
+        {
+            string[] row;
+            if (parts.Length == 1)
+            {
+                row = new string[] { parts[0], string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty };
+            }
+            else if (parts.Length == 2)
+            {
+                row = new string[] { parts[0], parts[1], string.Empty, string.Empty, string.Empty, string.Empty, string.Empty };
+            }
+            else if (parts.Length == 3)
+            {
+                row = new string[] { parts[0], parts[1], parts[2], string.Empty, string.Empty, string.Empty, string.Empty };
+            }
+            else if (parts.Length == 4)
+            {
+                row = new string[] { parts[0], parts[1], parts[2], parts[3], string.Empty, string.Empty, string.Empty };
+            }
+            else if (parts.Length == 5)
+            {
+                row = new string[] { parts[0], parts[1], parts[2], parts[3], parts[4], string.Empty, string.Empty };
+            }
+            else if (parts.Length == 6)
+            {
+                row = new string[] { parts[0], parts[1], parts[2], parts[3], parts[4], parts[5], string.Empty };
+            }
+            else if (parts.Length == 7)
+            {
+                row = new string[] { parts[0], parts[1], parts[2], parts[3], parts[4], parts[5], parts[6] };
+            }
+            else
+            {
+                row = new string[] { string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty };
+            }
+
+            return row;
         }
     }
 }
