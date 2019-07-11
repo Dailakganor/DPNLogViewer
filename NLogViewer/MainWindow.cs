@@ -1,5 +1,7 @@
-﻿using System;
+﻿using NLogViewer.Properties;
+using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -13,12 +15,15 @@ namespace NLogViewer
         private OpenFileDialog openFileDialog1;
         private List<string[]> fullList;
         private List<string> guids;
+        private char separator = '|';
 
         public MainWindow()
         {
             InitializeComponent();
             SetupDataGridView();
             FillTypeCombo();
+
+            this.separator = (char)Settings.Default["Separator"];
         }
 
         private void FillTypeCombo()
@@ -86,7 +91,7 @@ namespace NLogViewer
                 ReadDataFromFile();
 
                 corelationIds.DataSource = guids;
-                Format();
+                FillFormatCombo();
             }
         }
 
@@ -103,7 +108,7 @@ namespace NLogViewer
                     if (line == null)
                         break;
 
-                    string[] parts = line.Split(new char[] { '|' }, StringSplitOptions.None);
+                    string[] parts = line.Split(new char[] { separator }, StringSplitOptions.None);
                     var row = CreateRowItem(parts);
 
                     fullList.Add(row);
@@ -119,7 +124,7 @@ namespace NLogViewer
             }
         }
 
-        private void Format()
+        private void FillFormatCombo()
         {
             foreach (DataGridViewRow Myrow in dataGridView1.Rows)
             {
@@ -184,7 +189,7 @@ namespace NLogViewer
                 dataGridView1.Rows.Add(x);
             });
 
-            Format();
+            FillFormatCombo();
         }
 
         [PermissionSet(SecurityAction.Demand, Name = "FullTrust")]
@@ -192,10 +197,12 @@ namespace NLogViewer
         {
             OpenFile_Click(null, null);
 
-            var watch = new FileSystemWatcher();
-            watch.Path = openFileDialog1.FileName.Replace($"\\{openFileDialog1.SafeFileName}", "");
-            watch.Filter = openFileDialog1.SafeFileName;
-            watch.NotifyFilter = NotifyFilters.LastAccess | NotifyFilters.LastWrite;
+            var watch = new FileSystemWatcher
+            {
+                Path = openFileDialog1.FileName.Replace($"\\{openFileDialog1.SafeFileName}", ""),
+                Filter = openFileDialog1.SafeFileName,
+                NotifyFilter = NotifyFilters.LastAccess | NotifyFilters.LastWrite,
+            };
             watch.Changed += new FileSystemEventHandler(OnChanged);
             watch.EnableRaisingEvents = true;
         }
@@ -216,7 +223,7 @@ namespace NLogViewer
                         break;
                     }
 
-                    string[] parts = line.Split(new char[] { '|' }, StringSplitOptions.None);
+                    string[] parts = line.Split(new char[] { separator }, StringSplitOptions.None);
 
                     DateTime.TryParse(parts[0], out DateTime rowDate);
 
@@ -236,7 +243,7 @@ namespace NLogViewer
                 } while (true);
             }
 
-            Format();
+            FillFormatCombo();
             corelationIds.DataSource = guids;
         }
 
